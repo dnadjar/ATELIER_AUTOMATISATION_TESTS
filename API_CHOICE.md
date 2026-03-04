@@ -1,6 +1,6 @@
 # API Choice
 
-- Étudiant : Damien Nadjar
+- Étudiant : damiennadjar
 - API choisie : Cat Facts API
 - URL base : https://catfact.ninja
 - Documentation officielle / README : https://catfact.ninja/
