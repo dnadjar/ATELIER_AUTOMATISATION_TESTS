@@ -9,7 +9,6 @@ DB_FILE = os.path.join(BASE_DIR, 'monitoring.db')
 
 @app.route("/run-test")
 def trigger_test():
-    """Cette route lance le script de test et redirige vers l'accueil"""
     script_path = "/home/damiennadjar/mysite/run_test.py"
     try:
         subprocess.run(["python3", script_path], check=True)
@@ -19,18 +18,15 @@ def trigger_test():
 
 @app.get("/")
 def dashboard():
-    # Initialisation des variables par défaut
     results, avg_time, min_time, max_time, uptime, total_count, last_status = [], 0, 0, 0, 0, 0, None
     
     if os.path.exists(DB_FILE):
         conn = sqlite3.connect(DB_FILE)
         c = conn.cursor()
         try:
-            # Récupération de l'historique (20 derniers)
             c.execute("SELECT id, timestamp, status_code, response_time FROM tests ORDER BY timestamp DESC LIMIT 20")
             results = c.fetchall()
             
-            # Nouvelles requêtes SQL pour les KPIs avancés
             c.execute("SELECT AVG(response_time), MIN(response_time), MAX(response_time), COUNT(*) FROM tests")
             metrics = c.fetchone()
             if metrics[3] > 0:
@@ -39,20 +35,17 @@ def dashboard():
                 max_time = metrics[2] or 0
                 total_count = metrics[3] or 0
                 
-                # Calcul de l'uptime
                 c.execute("SELECT COUNT(*) FROM tests WHERE status_code = 200")
                 success_count = c.fetchone()[0]
                 uptime = (success_count / total_count * 100)
                 
-                # Déduire le statut actuel d'après le test le plus récent
                 last_status = results[0][2] if results else None
                 
         except sqlite3.OperationalError:
-            pass # Les variables resteront à leurs valeurs par défaut
+            pass 
         finally:
             conn.close()
 
-    # Le nouveau design HTML/CSS
     html_template = """
     <!DOCTYPE html>
     <html lang="fr">
@@ -70,35 +63,23 @@ def dashboard():
             }
             body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 40px; background-color: var(--light); color: var(--dark); }
             .container { max-width: 1200px; margin: auto; }
-            
-            /* Header */
             .header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
             h1 { margin: 0; font-size: 2.2em; color: var(--dark); }
             .api-badge { background: var(--primary); color: white; padding: 5px 15px; border-radius: 20px; font-size: 0.5em; vertical-align: middle; margin-left: 10px; }
-            
-            /* Bouton d'action */
             .btn { display: inline-flex; align-items: center; padding: 12px 24px; background-color: var(--primary); color: white; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; transition: 0.3s; box-shadow: 0 4px 6px rgba(0, 86, 179, 0.2); }
             .btn:hover { background-color: #004494; transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0, 86, 179, 0.3); }
-            
-            /* Section Statut Global */
             .global-status { margin-bottom: 30px; font-size: 1.2em; background: var(--card-bg); padding: 15px 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: inline-block; }
-            
-            /* Grille de KPIs (les petites cartes) */
             .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
             .kpi-card { background: var(--card-bg); padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; border-top: 4px solid #6c757d; transition: transform 0.2s; }
             .kpi-card:hover { transform: translateY(-5px); }
             .kpi-title { font-size: 0.85em; color: #6c757d; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
             .kpi-value { font-size: 1.8em; font-weight: bold; color: var(--dark); }
-            
-            /* Tableau */
             .table-card { background: var(--card-bg); padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-            .table-card h2 { margin-top: 0; border-bottom: 2px solid var(--light); padding-bottom: 15px; margin-bottom: 20px; }
+            .table-card h2, .section-title { margin-top: 0; border-bottom: 2px solid var(--light); padding-bottom: 15px; margin-bottom: 20px; color: var(--dark); }
             table { width: 100%; border-collapse: collapse; }
             th, td { padding: 15px; border-bottom: 1px solid #eee; text-align: left; }
             th { background-color: #f8f9fa; color: #495057; font-weight: 600; text-transform: uppercase; font-size: 0.85em; }
             tr:hover { background-color: #f9fdf9; }
-            
-            /* Badges de Statut HTTP */
             .status-badge { padding: 6px 12px; border-radius: 20px; font-size: 0.85em; font-weight: bold; display: inline-block; }
             .status-200 { background-color: rgba(40, 167, 69, 0.1); color: var(--success); }
             .status-error { background-color: rgba(220, 53, 69, 0.1); color: var(--danger); }
@@ -121,6 +102,8 @@ def dashboard():
                     <span style="color: #6c757d; font-weight: bold;">⚪ En attente de données...</span>
                 {% endif %}
             </div>
+            
+            <h2 class="section-title">Indicateurs de Qualité de Service (QoS)</h2>
             
             <div class="kpi-grid">
                 <div class="kpi-card" style="border-top-color: var(--success);">
