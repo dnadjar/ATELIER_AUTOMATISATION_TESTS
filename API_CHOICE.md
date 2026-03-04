@@ -1,12 +1,12 @@
 # API Choice
 
-- Étudiant : damiennadjar
-- API choisie : Cat Facts API
-- URL base : https://catfact.ninja
-- Documentation officielle / README : https://catfact.ninja/
+- Étudiant : Damiennadjar
+- API choisie : ExchangeRate-API
+- URL base : https://api.exchangerate-api.com
+- Documentation officielle / README : https://www.exchangerate-api.com/docs/free
 - Auth : None
 - Endpoints testés :
-  - GET /fact
+  - GET /v4/latest/USD
 - Hypothèses de contrat (champs attendus, types, codes) :
   - Code HTTP attendu : 200 OK
   - Format de réponse : JSON
