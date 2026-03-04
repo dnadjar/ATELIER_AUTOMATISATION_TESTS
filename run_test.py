@@ -4,12 +4,10 @@ import urllib.request
 from datetime import datetime
 import os
 
-# On utilise un chemin absolu pour que la tâche planifiée de PythonAnywhere trouve bien la BDD
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_FILE = os.path.join(BASE_DIR, 'monitoring.db')
 
 def init_db():
-    """Crée la table de monitoring si elle n'existe pas."""
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
     c.execute('''CREATE TABLE IF NOT EXISTS tests
@@ -21,13 +19,17 @@ def init_db():
     conn.close()
 
 def test_api():
-    """Test l'API et enregistre la performance en BDD."""
-    url = "https://catfact.ninja/fact"
+    # URL de l'API ExchangeRate qui est autorisée par PythonAnywhere
+    url = "https://api.exchangerate-api.com/v4/latest/USD"
+    
+    # On ajoute un User-Agent pour simuler un vrai navigateur
+    req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+    
     start_time = time.time()
     status_code = 500
     
     try:
-        response = urllib.request.urlopen(url, timeout=5)
+        response = urllib.request.urlopen(req, timeout=5)
         status_code = response.getcode()
     except Exception as e:
         print(f"Erreur: {e}")
@@ -36,7 +38,6 @@ def test_api():
     response_time = round(end_time - start_time, 4)
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    # Sauvegarde en base de données
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
     c.execute("INSERT INTO tests (timestamp, status_code, response_time) VALUES (?, ?, ?)",
